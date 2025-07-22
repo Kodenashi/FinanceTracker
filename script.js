@@ -1,7 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy
+    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc,
+    onSnapshot, query, orderBy, getDocs, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyDxMntRJN5gNGB9OmCDbSSdZbWCWxAH1UY",
@@ -13,15 +15,12 @@ const firebaseConfig = {
     measurementId: "G-31364MQLWH"
 };
 
-// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ✅ Firestore References
 const salariesRef = collection(db, "salaries");
 const expensesRef = collection(db, "expenses");
 
-// ✅ Global Totals
 let totalIncome = 0;
 let totalExpenses = 0;
 let categoryTotals = {
@@ -33,7 +32,6 @@ let categoryTotals = {
     "Vacation": 0
 };
 
-// ✅ Expense Options
 const expenseOptions = {
     "Home": ["Lot Rent", "PLDT WIFI", "Electricity", "Water", "Maintenance/Improvements", "Appliances/Furnishing", "Other"],
     "Transportation": ["Motor Installment", "Fuel", "Parking", "Repairs/Maintenance", "Public Transportation", "Registration/License", "Other"],
@@ -43,7 +41,6 @@ const expenseOptions = {
     "Vacation": ["Accomodation", "Food", "Fare", "Other"]
 };
 
-// ✅ Real-time Listener for Salaries (with ordering by date)
 const salaryQuery = query(salariesRef, orderBy("date", "desc"));
 onSnapshot(salaryQuery, (snapshot) => {
     console.log("✅ Salaries snapshot triggered!");
@@ -84,7 +81,6 @@ onSnapshot(salaryQuery, (snapshot) => {
     updateRemaining();
 });
 
-// ✅ Real-time Listener for Expenses
 onSnapshot(expensesRef, (snapshot) => {
     totalExpenses = 0;
     categoryTotals = { "Home": 0, "Transportation": 0, "Daily Living": 0, "Entertainment": 0, "Health": 0, "Vacation": 0 };
@@ -111,7 +107,10 @@ onSnapshot(expensesRef, (snapshot) => {
         categoryTotals[exp.category] += exp.amount;
 
         const detailsCell = document.getElementById(idMap[exp.category] + 'Details');
-        detailsCell.innerHTML += `${exp.name} (₱${exp.amount.toLocaleString()} - Deducted on ${exp.payDate})<br>`;
+        if (detailsCell.innerHTML.includes(`${exp.name} (₱${exp.amount.toLocaleString()}`) === false) {
+    detailsCell.innerHTML += `${exp.name} (₱${exp.amount.toLocaleString()} - Deducted on ${exp.payDate})<br>`;
+}
+
 
         const monthKey = new Date().toISOString().slice(0, 7);
         if (!monthlySummary[monthKey]) monthlySummary[monthKey] = { salary: 0, expenses: 0 };
@@ -127,7 +126,6 @@ onSnapshot(expensesRef, (snapshot) => {
     updateRemaining();
 });
 
-// ✅ Add Salary
 async function addSalary() {
     const amount = parseFloat(document.getElementById('salaryAmount').value);
     const owner = document.getElementById('salaryOwner').value;
@@ -143,7 +141,6 @@ async function addSalary() {
     document.getElementById('salaryDate').value = '';
 }
 
-// ✅ Add Expense
 async function addExpense() {
     const category = document.getElementById('expenseCategory').value;
     const name = document.getElementById('expenseName').value;
@@ -160,12 +157,10 @@ async function addExpense() {
     document.getElementById('expenseName').innerHTML = '<option value="">Select Expense</option>';
 }
 
-// ✅ Delete Salary
 async function deleteSalary(id) {
     await deleteDoc(doc(db, "salaries", id));
 }
 
-// ✅ Edit Salary
 function editSalary(id, currentAmount, currentDate) {
     const newAmount = parseFloat(prompt("Enter new salary amount:", currentAmount));
     const newDate = prompt("Enter new date (YYYY-MM-DD):", currentDate);
@@ -174,7 +169,6 @@ function editSalary(id, currentAmount, currentDate) {
     updateDoc(doc(db, "salaries", id), { amount: newAmount, date: newDate });
 }
 
-// ✅ Update Monthly Table
 function updateMonthlyTable(summary) {
     const tbody = document.querySelector('#monthlyTable tbody');
     tbody.innerHTML = '';
@@ -193,7 +187,6 @@ function updateMonthlyTable(summary) {
     });
 }
 
-// ✅ Update Expense Options
 function updateExpenseOptions() {
     const category = document.getElementById('expenseCategory').value;
     const expenseDropdown = document.getElementById('expenseName');
@@ -208,13 +201,11 @@ function updateExpenseOptions() {
     }
 }
 
-// ✅ Update Remaining
 function updateRemaining() {
     const remaining = totalIncome - totalExpenses;
     document.getElementById('remaining').innerText = remaining.toLocaleString();
 }
 
-// ✅ Date Helpers
 function formatDate(dateString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
@@ -226,9 +217,46 @@ function formatMonth(monthKey) {
     return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
-// ✅ Attach Functions to Window
 window.addSalary = addSalary;
 window.addExpense = addExpense;
 window.updateExpenseOptions = updateExpenseOptions;
 window.deleteSalary = deleteSalary;
 window.editSalary = editSalary;
+
+
+// ✅ Delete All Salaries
+async function deleteAllSalaries() {
+    if (!confirm("Are you sure you want to delete ALL salary records? This cannot be undone.")) return;
+
+    const snapshot = await getDocs(salariesRef);
+    if (snapshot.empty) {
+        alert("No salary records to delete.");
+        return;
+    }
+
+    const batch = writeBatch(db);
+    snapshot.forEach(docSnap => batch.delete(docSnap.ref));
+
+    await batch.commit();
+    alert("All salary records deleted.");
+}
+
+
+// ✅ Delete All Expenses
+async function deleteAllExpenses() {
+    if (!confirm("Are you sure you want to delete ALL expense records? This cannot be undone.")) return;
+
+    const snapshot = await getDocs(expensesRef);
+    if (snapshot.empty) {
+        alert("No expense records to delete.");
+        return;
+    }
+
+    const batch = writeBatch(db);
+    snapshot.forEach(docSnap => batch.delete(docSnap.ref));
+
+    await batch.commit();
+    alert("All expense records deleted.");
+}
+
+
