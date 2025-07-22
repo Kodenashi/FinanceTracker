@@ -13,7 +13,6 @@
 
     <div class="container">
 
-        <!-- Add Salary Section -->
         <section class="section-card">
             <h3>Add Salary</h3>
             <div class="form-grid">
@@ -27,7 +26,6 @@
             </div>
         </section>
 
-        <!-- Salary Records -->
         <section class="section-card">
             <div class="section-header">
                 <h3>Salary Records</h3>
@@ -48,7 +46,6 @@
             </div>
         </section>
 
-        <!-- Monthly Summary -->
         <section class="section-card">
             <h3>Monthly Combined Salary Summary</h3>
             <table id="monthlyTable">
@@ -64,7 +61,6 @@
             </table>
         </section>
 
-        <!-- Summary -->
         <section class="summary-card">
             <div class="summary-item">
                 <p>Total Income</p>
@@ -80,7 +76,6 @@
             </div>
         </section>
 
-        <!-- Add Expense -->
         <section class="section-card">
             <h3>Add Expense</h3>
             <div class="form-grid">
@@ -107,7 +102,6 @@
             </div>
         </section>
 
-        <!-- Expenses Table -->
         <section class="section-card">
             <h3>Expenses by Category</h3>
             <table id="expenseTable">
@@ -158,17 +152,30 @@
 
     </div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h3>Edit Salary</h3>
-        <input type="number" id="editAmount" placeholder="Enter new amount">
-        <input type="date" id="editDate">
-        <div class="modal-buttons">
-            <button class="btn btn-primary" id="saveEditBtn">Save</button>
-            <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Salary</h3>
+            <input type="number" id="editAmount" placeholder="Enter new amount">
+            <input type="date" id="editDate">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="saveEditBtn">Save</button>
+                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Action</h3>
+            <p id="confirmMessage">Are you sure you want to delete ALL records? This cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="btn-danger">Confirm</button>
+                <button id="cancelBtn" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
 
 
     <script type="module" src="script.js" defer></script>
