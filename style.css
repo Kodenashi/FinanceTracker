@@ -6,10 +6,12 @@
 
 body {
     font-family: "Segoe UI", sans-serif;
-    background: #f8faff;
+    background: url('https://kodenashi.github.io/FinanceTracker/assets/background.jpg') no-repeat center center fixed;
+    background-size: cover;
     color: #333;
     line-height: 1.6;
 }
+
 
 .app-header {
     background: #4cafef;
@@ -273,3 +275,17 @@ tr:hover {
     opacity: 1;
     bottom: 40px;
 }
+.summary-card,
+.section-card,
+.modal-content,
+table th,
+table td {
+    background: rgba(255, 255, 255, 0.5); 
+    backdrop-filter: blur(8px); 
+}
+
+.app-header {
+    background: rgba(76, 175, 239, 0.7); 
+    backdrop-filter: blur(8px);
+}
+
