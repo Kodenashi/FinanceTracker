@@ -1,7 +1,29 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDxMntRJN5gNGB9OmCDbSSdZbWCWxAH1UY",
+    authDomain: "finance-6fc35.firebaseapp.com",
+    projectId: "finance-6fc35",
+    storageBucket: "finance-6fc35.appspot.com",
+    messagingSenderId: "1060399666538",
+    appId: "1:1060399666538:web:6d49bc5f6735e4b5940113",
+    measurementId: "G-31364MQLWH"
+};
+
+// ✅ Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ✅ Firestore References
+const salariesRef = collection(db, "salaries");
+const expensesRef = collection(db, "expenses");
+
+// ✅ Global Totals
 let totalIncome = 0;
 let totalExpenses = 0;
-let salaryList = [];
-let monthlyData = {};
 let categoryTotals = {
     "Home": 0,
     "Transportation": 0,
@@ -11,6 +33,7 @@ let categoryTotals = {
     "Vacation": 0
 };
 
+// ✅ Expense Options
 const expenseOptions = {
     "Home": ["Lot Rent", "PLDT WIFI", "Electricity", "Water", "Maintenance/Improvements", "Appliances/Furnishing", "Other"],
     "Transportation": ["Motor Installment", "Fuel", "Parking", "Repairs/Maintenance", "Public Transportation", "Registration/License", "Other"],
@@ -20,6 +43,157 @@ const expenseOptions = {
     "Vacation": ["Accomodation", "Food", "Fare", "Other"]
 };
 
+// ✅ Real-time Listener for Salaries (with ordering by date)
+const salaryQuery = query(salariesRef, orderBy("date", "desc"));
+onSnapshot(salaryQuery, (snapshot) => {
+    console.log("✅ Salaries snapshot triggered!");
+    totalIncome = 0;
+    const tbody = document.querySelector('#salaryTable tbody');
+    if (!tbody) {
+        console.error("❌ salaryTable tbody not found!");
+        return;
+    }
+
+    tbody.innerHTML = '';
+    let monthlySummary = {};
+
+    snapshot.forEach(docSnap => {
+        const salary = { id: docSnap.id, ...docSnap.data() };
+        console.log("📌 Salary:", salary);
+        totalIncome += salary.amount;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${salary.owner}</td>
+            <td>${formatDate(salary.date)}</td>
+            <td>₱${salary.amount.toLocaleString()}</td>
+            <td>
+                <button onclick="editSalary('${salary.id}', ${salary.amount}, '${salary.date}')" class="btn-edit">Edit</button>
+                <button onclick="deleteSalary('${salary.id}')" class="btn-delete">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+
+        const monthKey = salary.date.slice(0, 7);
+        if (!monthlySummary[monthKey]) monthlySummary[monthKey] = { salary: 0, expenses: 0 };
+        monthlySummary[monthKey].salary += salary.amount;
+    });
+
+    document.getElementById('totalIncome').innerText = totalIncome.toLocaleString();
+    updateMonthlyTable(monthlySummary);
+    updateRemaining();
+});
+
+// ✅ Real-time Listener for Expenses
+onSnapshot(expensesRef, (snapshot) => {
+    totalExpenses = 0;
+    categoryTotals = { "Home": 0, "Transportation": 0, "Daily Living": 0, "Entertainment": 0, "Health": 0, "Vacation": 0 };
+
+    const idMap = {
+        "Home": "home",
+        "Transportation": "transportation",
+        "Daily Living": "dailyliving",
+        "Entertainment": "entertainment",
+        "Health": "health",
+        "Vacation": "vacation"
+    };
+
+    for (let key in idMap) {
+        document.getElementById(idMap[key] + 'Details').innerHTML = '';
+        document.getElementById(idMap[key] + 'Total').innerText = '₱0';
+    }
+
+    let monthlySummary = {};
+
+    snapshot.forEach(docSnap => {
+        const exp = docSnap.data();
+        totalExpenses += exp.amount;
+        categoryTotals[exp.category] += exp.amount;
+
+        const detailsCell = document.getElementById(idMap[exp.category] + 'Details');
+        detailsCell.innerHTML += `${exp.name} (₱${exp.amount.toLocaleString()} - Deducted on ${exp.payDate})<br>`;
+
+        const monthKey = new Date().toISOString().slice(0, 7);
+        if (!monthlySummary[monthKey]) monthlySummary[monthKey] = { salary: 0, expenses: 0 };
+        monthlySummary[monthKey].expenses += exp.amount;
+    });
+
+    for (let cat in categoryTotals) {
+        document.getElementById(idMap[cat] + 'Total').innerText = `₱${categoryTotals[cat].toLocaleString()}`;
+    }
+
+    document.getElementById('totalExpenses').innerText = totalExpenses.toLocaleString();
+    updateMonthlyTable(monthlySummary);
+    updateRemaining();
+});
+
+// ✅ Add Salary
+async function addSalary() {
+    const amount = parseFloat(document.getElementById('salaryAmount').value);
+    const owner = document.getElementById('salaryOwner').value;
+    const date = document.getElementById('salaryDate').value;
+
+    if (isNaN(amount) || amount <= 0 || !date) {
+        alert("Please enter valid salary details.");
+        return;
+    }
+
+    await addDoc(salariesRef, { owner, amount, date });
+    document.getElementById('salaryAmount').value = '';
+    document.getElementById('salaryDate').value = '';
+}
+
+// ✅ Add Expense
+async function addExpense() {
+    const category = document.getElementById('expenseCategory').value;
+    const name = document.getElementById('expenseName').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const payDate = document.getElementById('expensePayDate').value;
+
+    if (!category || !name || isNaN(amount) || amount <= 0) {
+        alert("Please fill in all expense details.");
+        return;
+    }
+
+    await addDoc(expensesRef, { category, name, amount, payDate });
+    document.getElementById('expenseAmount').value = '';
+    document.getElementById('expenseName').innerHTML = '<option value="">Select Expense</option>';
+}
+
+// ✅ Delete Salary
+async function deleteSalary(id) {
+    await deleteDoc(doc(db, "salaries", id));
+}
+
+// ✅ Edit Salary
+function editSalary(id, currentAmount, currentDate) {
+    const newAmount = parseFloat(prompt("Enter new salary amount:", currentAmount));
+    const newDate = prompt("Enter new date (YYYY-MM-DD):", currentDate);
+    if (isNaN(newAmount) || newAmount <= 0 || !newDate) return;
+
+    updateDoc(doc(db, "salaries", id), { amount: newAmount, date: newDate });
+}
+
+// ✅ Update Monthly Table
+function updateMonthlyTable(summary) {
+    const tbody = document.querySelector('#monthlyTable tbody');
+    tbody.innerHTML = '';
+    const months = Object.keys(summary).sort();
+    months.forEach(monthKey => {
+        const data = summary[monthKey];
+        const remaining = (data.salary || 0) - (data.expenses || 0);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${formatMonth(monthKey)}</td>
+            <td>₱${(data.salary || 0).toLocaleString()}</td>
+            <td>₱${(data.expenses || 0).toLocaleString()}</td>
+            <td>₱${remaining.toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// ✅ Update Expense Options
 function updateExpenseOptions() {
     const category = document.getElementById('expenseCategory').value;
     const expenseDropdown = document.getElementById('expenseName');
@@ -34,225 +208,27 @@ function updateExpenseOptions() {
     }
 }
 
-function addSalary() {
-    const amount = parseFloat(document.getElementById('salaryAmount').value);
-    const owner = document.getElementById('salaryOwner').value;
-    const date = document.getElementById('salaryDate').value;
-    if (isNaN(amount) || amount <= 0) {
-        alert('Please enter a valid salary amount.');
-        return;
-    }
-    if (!date) {
-        alert('Please select a date.');
-        return;
-    }
-    salaryList.push({
-        id: Date.now(),
-        owner,
-        date,
-        amount
-    });
-    totalIncome += amount;
-    const monthKey = date.slice(0, 7);
-    if (!monthlyData[monthKey]) monthlyData[monthKey] = {
-        salary: 0,
-        expenses: 0
-    };
-    monthlyData[monthKey].salary += amount;
-    updateSalaryTable();
-    updateMonthlyTable();
-    updateRemaining();
-    document.getElementById('salaryAmount').value = '';
-    document.getElementById('salaryDate').value = '';
+// ✅ Update Remaining
+function updateRemaining() {
+    const remaining = totalIncome - totalExpenses;
+    document.getElementById('remaining').innerText = remaining.toLocaleString();
 }
 
-function updateSalaryTable() {
-    const tbody = document.querySelector('#salaryTable tbody');
-    tbody.innerHTML = '';
-    salaryList.forEach(salary => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${salary.owner}</td>
-            <td>${formatDate(salary.date)}</td>
-            <td>₱${salary.amount.toLocaleString()}</td>
-            <td>
-                <button onclick="editSalary(${salary.id})" class="btn-edit">Edit</button>
-                <button onclick="deleteSalary(${salary.id})" class="btn-delete">Delete</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    document.getElementById('totalIncome').innerText = totalIncome.toLocaleString();
-}
-
-function updateMonthlyTable() {
-    const tbody = document.querySelector('#monthlyTable tbody');
-    tbody.innerHTML = '';
-    const sortedMonths = Object.keys(monthlyData).sort();
-    sortedMonths.forEach(monthKey => {
-        const data = monthlyData[monthKey];
-        const remaining = data.salary - data.expenses;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatMonth(monthKey)}</td>
-            <td>₱${data.salary.toLocaleString()}</td>
-            <td>₱${data.expenses.toLocaleString()}</td>
-            <td>₱${remaining.toLocaleString()}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-function editSalary(id) {
-    const salary = salaryList.find(s => s.id === id);
-    if (!salary) return;
-    const newAmount = parseFloat(prompt('Enter new salary amount:', salary.amount));
-    if (isNaN(newAmount) || newAmount <= 0) return;
-    const newDate = prompt('Enter new date (YYYY-MM-DD):', salary.date);
-    if (!newDate || isNaN(Date.parse(newDate))) return;
-    totalIncome -= salary.amount;
-    const oldMonth = salary.date.slice(0, 7);
-    monthlyData[oldMonth].salary -= salary.amount;
-    salary.amount = newAmount;
-    salary.date = newDate;
-    totalIncome += newAmount;
-    const newMonth = newDate.slice(0, 7);
-    if (!monthlyData[newMonth]) monthlyData[newMonth] = {
-        salary: 0,
-        expenses: 0
-    };
-    monthlyData[newMonth].salary += newAmount;
-    updateSalaryTable();
-    updateMonthlyTable();
-    updateRemaining();
-}
-
-function deleteSalary(id) {
-    const index = salaryList.findIndex(s => s.id === id);
-    if (index === -1) return;
-    const salary = salaryList[index];
-    totalIncome -= salary.amount;
-    const monthKey = salary.date.slice(0, 7);
-    monthlyData[monthKey].salary -= salary.amount;
-    salaryList.splice(index, 1);
-    updateSalaryTable();
-    updateMonthlyTable();
-    updateRemaining();
-}
-
-function clearAllSalaries() {
-    if (!confirm('Are you sure you want to clear all salary records?')) return;
-    salaryList = [];
-    monthlyData = {};
-    totalIncome = 0;
-    updateSalaryTable();
-    updateMonthlyTable();
-    updateRemaining();
-}
-
+// ✅ Date Helpers
 function formatDate(dateString) {
-    const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    };
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }
 
 function formatMonth(monthKey) {
     const [year, month] = monthKey.split('-');
     const date = new Date(year, month - 1);
-    return date.toLocaleString('en-US', {
-        month: 'long',
-        year: 'numeric'
-    });
+    return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
-function addExpense() {
-    const category = document.getElementById('expenseCategory').value;
-    const name = document.getElementById('expenseName').value;
-    const amount = parseFloat(document.getElementById('expenseAmount').value);
-    const payDate = document.getElementById('expensePayDate').value;
-    if (!category || !name || isNaN(amount) || amount <= 0) {
-        alert('Please select a category, expense, and enter a valid amount.');
-        return;
-    }
-    totalExpenses += amount;
-    categoryTotals[category] += amount;
-    const idMap = {
-        "Home": "home",
-        "Transportation": "transportation",
-        "Daily Living": "dailyliving",
-        "Entertainment": "entertainment",
-        "Health": "health",
-        "Vacation": "vacation"
-    };
-    const detailsCell = document.getElementById(idMap[category] + 'Details');
-    const totalCell = document.getElementById(idMap[category] + 'Total');
-    detailsCell.innerHTML += `${name} (₱${amount.toLocaleString()} - Deducted on ${payDate})<br>`;
-    totalCell.innerText = `₱${categoryTotals[category].toLocaleString()}`;
-    document.getElementById('totalExpenses').innerText = totalExpenses.toLocaleString();
-    updateRemaining();
-    const expenseMonthKey = new Date().toISOString().slice(0, 7);
-    if (!monthlyData[expenseMonthKey]) monthlyData[expenseMonthKey] = {
-        salary: 0,
-        expenses: 0
-    };
-    monthlyData[expenseMonthKey].expenses += amount;
-    updateMonthlyTable();
-    document.getElementById('expenseAmount').value = '';
-    document.getElementById('expenseName').innerHTML = '<option value="">Select Expense</option>';
-}
-
-function updateRemaining() {
-    const remaining = totalIncome - totalExpenses;
-    document.getElementById('remaining').innerText = remaining.toLocaleString();
-}
-let editingSalaryId = null;
-
-function editSalary(id) {
-    const salary = salaryList.find(s => s.id === id);
-    if (!salary) return;
-
-    editingSalaryId = id;
-    document.getElementById('editSalaryAmount').value = salary.amount;
-    document.getElementById('editSalaryDate').value = salary.date;
-    document.getElementById('editSalaryModal').style.display = 'flex';
-}
-
-function closeEditModal() {
-    document.getElementById('editSalaryModal').style.display = 'none';
-    editingSalaryId = null;
-}
-
-function saveEditedSalary() {
-    const newAmount = parseFloat(document.getElementById('editSalaryAmount').value);
-    const newDate = document.getElementById('editSalaryDate').value;
-    if (isNaN(newAmount) || newAmount <= 0 || !newDate) {
-        alert('Please enter valid values.');
-        return;
-    }
-
-    const salary = salaryList.find(s => s.id === editingSalaryId);
-    if (!salary) return;
-
-    totalIncome -= salary.amount;
-    const oldMonth = salary.date.slice(0, 7);
-    monthlyData[oldMonth].salary -= salary.amount;
-
-    salary.amount = newAmount;
-    salary.date = newDate;
-
-    totalIncome += newAmount;
-    const newMonth = newDate.slice(0, 7);
-    if (!monthlyData[newMonth]) monthlyData[newMonth] = {
-        salary: 0,
-        expenses: 0
-    };
-    monthlyData[newMonth].salary += newAmount;
-
-    updateSalaryTable();
-    updateMonthlyTable();
-    updateRemaining();
-    closeEditModal();
-}
+// ✅ Attach Functions to Window
+window.addSalary = addSalary;
+window.addExpense = addExpense;
+window.updateExpenseOptions = updateExpenseOptions;
+window.deleteSalary = deleteSalary;
+window.editSalary = editSalary;
