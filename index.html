@@ -9,24 +9,27 @@
 </head>
 
 <body>
-    <div class="container">
-        <h2>Finance Tracker</h2>
+    <header class="app-header">Finance Tracker</header>
 
-        <div class="section-card">
+    <div class="container">
+
+        <!-- Add Salary Section -->
+        <section class="section-card">
             <h3>Add Salary</h3>
-            <div class="add-salary">
+            <div class="form-grid">
                 <input type="number" id="salaryAmount" placeholder="Enter salary amount">
                 <select id="salaryOwner">
                     <option value="Jancel">Jancel</option>
                     <option value="Joan">Joan</option>
                 </select>
                 <input type="date" id="salaryDate">
-                <button class="btn-primary" onclick="addSalary()">Add Salary</button>
+                <button class="btn btn-primary" onclick="addSalary()">Add Salary</button>
             </div>
-        </div>
+        </section>
 
-        <div class="section-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+        <!-- Salary Records -->
+        <section class="section-card">
+            <div class="section-header">
                 <h3>Salary Records</h3>
             </div>
             <table id="salaryTable">
@@ -38,15 +41,15 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody></tbody>
             </table>
             <div class="center-button">
-                <button class="btn-danger" onclick="deleteAllSalaries()">Delete All Salaries</button>
+                <button class="btn btn-danger" onclick="deleteAllSalaries()">Delete All Salaries</button>
             </div>
-        </div>
+        </section>
 
-        <div class="section-card">
+        <!-- Monthly Summary -->
+        <section class="section-card">
             <h3>Monthly Combined Salary Summary</h3>
             <table id="monthlyTable">
                 <thead>
@@ -57,22 +60,30 @@
                         <th>Remaining</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody></tbody>
             </table>
-        </div>
+        </section>
 
-        <div class="summary">
-            <p><strong>Total Income:</strong> ₱<span id="totalIncome">0</span></p>
-            <p><strong>Total Expenses:</strong> ₱<span id="totalExpenses">0</span></p>
-            <p><strong>Remaining:</strong> ₱<span id="remaining">0</span></p>
-        </div>
+        <!-- Summary -->
+        <section class="summary-card">
+            <div class="summary-item">
+                <p>Total Income</p>
+                <h2>₱<span id="totalIncome">0</span></h2>
+            </div>
+            <div class="summary-item">
+                <p>Total Expenses</p>
+                <h2>₱<span id="totalExpenses">0</span></h2>
+            </div>
+            <div class="summary-item">
+                <p>Remaining</p>
+                <h2 id="remaining">₱0</h2>
+            </div>
+        </section>
 
-        <hr>
-
-        <div class="section-card">
+        <!-- Add Expense -->
+        <section class="section-card">
             <h3>Add Expense</h3>
-            <div class="add-expense">
+            <div class="form-grid">
                 <select id="expenseCategory" onchange="updateExpenseOptions()">
                     <option value="">Select Category</option>
                     <option value="Home">Home</option>
@@ -82,25 +93,22 @@
                     <option value="Health">Health</option>
                     <option value="Vacation">Vacation</option>
                 </select>
-
                 <select id="expenseName">
                     <option value="">Select Expense</option>
                 </select>
-
                 <input type="number" id="expenseAmount" placeholder="Amount">
-
                 <select id="expensePayDate">
                     <option value="5th">5th</option>
                     <option value="15th">15th</option>
                     <option value="20th">20th</option>
                     <option value="30th">30th</option>
                 </select>
-
-                <button class="btn-primary" onclick="addExpense()">Add Expense</button>
+                <button class="btn btn-primary" onclick="addExpense()">Add Expense</button>
             </div>
-        </div>
+        </section>
 
-        <div class="section-card">
+        <!-- Expenses Table -->
+        <section class="section-card">
             <h3>Expenses by Category</h3>
             <table id="expenseTable">
                 <thead>
@@ -144,12 +152,26 @@
                 </tbody>
             </table>
             <div class="center-button">
-                <button class="btn-danger" onclick="deleteAllExpenses()">Delete All Expenses</button>
+                <button class="btn btn-danger" onclick="deleteAllExpenses()">Delete All Expenses</button>
             </div>
-        </div>
+        </section>
+
     </div>
 
-    <script type="module" src="script.js"></script>
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>Edit Salary</h3>
+        <input type="number" id="editAmount" placeholder="Enter new amount">
+        <input type="date" id="editDate">
+        <div class="modal-buttons">
+            <button class="btn btn-primary" id="saveEditBtn">Save</button>
+            <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+    <script type="module" src="script.js" defer></script>
 </body>
 
 </html>
