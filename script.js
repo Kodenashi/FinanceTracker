@@ -1,4 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getFirestore,
     collection,
@@ -57,9 +59,12 @@ onSnapshot(salaryQuery, (snapshot) => {
 
     tbody.innerHTML = '';
 
-snapshot.forEach(docSnap => {
-    const salary = { id: docSnap.id, ...docSnap.data() };
-    totalIncome += Number(salary.amount) || 0;
+    snapshot.forEach(docSnap => {
+        const salary = {
+            id: docSnap.id,
+            ...docSnap.data()
+        };
+        totalIncome += Number(salary.amount) || 0;
 
 
         const row = document.createElement('tr');
@@ -82,7 +87,14 @@ snapshot.forEach(docSnap => {
 
 onSnapshot(expensesRef, (snapshot) => {
     totalExpenses = 0;
-    categoryTotals = { "Home": 0, "Transportation": 0, "Daily Living": 0, "Entertainment": 0, "Health": 0, "Vacation": 0 };
+    categoryTotals = {
+        "Home": 0,
+        "Transportation": 0,
+        "Daily Living": 0,
+        "Entertainment": 0,
+        "Health": 0,
+        "Vacation": 0
+    };
 
     const idMap = {
         "Home": "home",
@@ -102,10 +114,10 @@ onSnapshot(expensesRef, (snapshot) => {
         "Vacation": []
     };
 
-snapshot.forEach(docSnap => {
-    const exp = docSnap.data();
-    totalExpenses += Number(exp.amount) || 0;
-    categoryTotals[exp.category] += Number(exp.amount) || 0;
+    snapshot.forEach(docSnap => {
+        const exp = docSnap.data();
+        totalExpenses += Number(exp.amount) || 0;
+        categoryTotals[exp.category] += Number(exp.amount) || 0;
 
 
         if (categoryExpenses[exp.category]) {
@@ -134,7 +146,11 @@ async function addSalary() {
         return;
     }
 
-    await addDoc(salariesRef, { owner, amount, date });
+    await addDoc(salariesRef, {
+        owner,
+        amount,
+        date
+    });
     document.getElementById('salaryAmount').value = '';
     document.getElementById('salaryDate').value = '';
 }
@@ -150,7 +166,12 @@ async function addExpense() {
         return;
     }
 
-    await addDoc(expensesRef, { category, name, amount, payDate });
+    await addDoc(expensesRef, {
+        category,
+        name,
+        amount,
+        payDate
+    });
     document.getElementById('expenseAmount').value = '';
     document.getElementById('expenseName').innerHTML = '<option value="">Select Expense</option>';
 }
@@ -209,7 +230,11 @@ function updateRemaining() {
 }
 
 function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }
 
@@ -219,38 +244,38 @@ window.updateExpenseOptions = updateExpenseOptions;
 window.deleteSalary = deleteSalary;
 window.editSalary = editSalary;
 
-async function deleteAllSalaries() {
-    if (!confirm("Are you sure you want to delete ALL salary records? This cannot be undone.")) return;
+function deleteAllSalaries() {
+    showConfirm("Are you sure you want to delete ALL salary records? This cannot be undone.", async () => {
+        const snapshot = await getDocs(salariesRef);
+        if (snapshot.empty) {
+            showToast("No salary records to delete.");
+            return;
+        }
 
-    const snapshot = await getDocs(salariesRef);
-    if (snapshot.empty) {
-        alert("No salary records to delete.");
-        return;
-    }
+        const batch = writeBatch(db);
+        snapshot.forEach(docSnap => batch.delete(docSnap.ref));
 
-    const batch = writeBatch(db);
-    snapshot.forEach(docSnap => batch.delete(docSnap.ref));
-
-    await batch.commit();
-    alert("All salary records deleted.");
+        await batch.commit();
+        showToast("All salary records deleted successfully.");
+    });
 }
 
-async function deleteAllExpenses() {
-    if (!confirm("Are you sure you want to delete ALL expense records? This cannot be undone.")) return;
+function deleteAllExpenses() {
+    showConfirm("Are you sure you want to delete ALL expense records? This cannot be undone.", async () => {
+        const snapshot = await getDocs(expensesRef);
+        if (snapshot.empty) {
+            showToast("No expense records to delete.");
+            return;
+        }
 
-    const snapshot = await getDocs(expensesRef);
-    if (snapshot.empty) {
-        alert("No expense records to delete.");
-        return;
-    }
+        const batch = writeBatch(db);
+        snapshot.forEach(docSnap => batch.delete(docSnap.ref));
 
-    const batch = writeBatch(db);
-    snapshot.forEach(docSnap => batch.delete(docSnap.ref));
-
-    await batch.commit();
-    alert("All expense records deleted.");
+        await batch.commit();
+        showToast("All expense records deleted successfully.");
+    });
 }
-// --- Edit Salary Modal Logic ---
+
 let currentEditId = null;
 
 function editSalary(id, currentAmount, currentDate) {
@@ -269,13 +294,44 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
         return;
     }
 
-    await updateDoc(doc(db, "salaries", currentEditId), { amount: newAmount, date: newDate });
+    await updateDoc(doc(db, "salaries", currentEditId), {
+        amount: newAmount,
+        date: newDate
+    });
     document.getElementById('editModal').style.display = 'none';
 });
 
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
     document.getElementById('editModal').style.display = 'none';
 });
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+let currentAction = null;
+
+function showConfirm(message, action) {
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmModal').style.display = 'flex';
+    currentAction = action;
+}
+
+document.getElementById('confirmBtn').addEventListener('click', async () => {
+    if (typeof currentAction === "function") currentAction();
+    document.getElementById('confirmModal').style.display = 'none';
+});
+
+document.getElementById('cancelBtn').addEventListener('click', () => {
+    document.getElementById('confirmModal').style.display = 'none';
+});
+
+
 window.editSalary = editSalary;
 window.deleteAllSalaries = deleteAllSalaries;
 window.deleteAllExpenses = deleteAllExpenses;
