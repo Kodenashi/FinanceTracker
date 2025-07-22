@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>Finance Tracker</h2>
+
+        <!-- Add Salary Section -->
+        <div class="section-card">
+            <h3>Add Salary</h3>
+            <div class="add-salary">
+                <input type="number" id="salaryAmount" placeholder="Enter salary amount">
+                <select id="salaryOwner">
+                    <option value="Jancel">Jancel</option>
+                    <option value="Joan">Joan</option>
+                </select>
+                <input type="date" id="salaryDate">
+                <button onclick="addSalary()">Add Salary</button>
+            </div>
+        </div>
+
+        <!-- Salary Records -->
+        <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Salary Records</h3>
+                <button class="btn-danger" onclick="clearAllSalaries()">Clear All</button>
+            </div>
+            <table id="salaryTable">
+                <thead>
+                    <tr>
+                        <th>Who</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Monthly Combined Salary Summary -->
+        <div class="section-card">
+            <h3>Monthly Combined Salary Summary</h3>
+            <table id="monthlyTable">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Salary</th>
+                        <th>Total Expenses</th>
+                        <th>Remaining</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <p><strong>Total Income:</strong> ₱<span id="totalIncome">0</span></p>
+            <p><strong>Remaining:</strong> ₱<span id="remaining">0</span></p>
+        </div>
+
+        <hr>
+
+        <!-- Add Expense Section -->
+        <div class="section-card">
+            <h3>Add Expense</h3>
+            <div class="add-expense">
+                <select id="expenseCategory" onchange="updateExpenseOptions()">
+                    <option value="">Select Category</option>
+                    <option value="Home">Home</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Daily Living">Daily Living</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Health">Health</option>
+                    <option value="Vacation">Vacation</option>
+                </select>
+
+                <select id="expenseName">
+                    <option value="">Select Expense</option>
+                </select>
+
+                <input type="number" id="expenseAmount" placeholder="Amount">
+
+                <select id="expensePayDate">
+                    <option value="5th">5th</option>
+                    <option value="15th">15th</option>
+                    <option value="20th">20th</option>
+                    <option value="30th">30th</option>
+                </select>
+
+                <button onclick="addExpense()">Add Expense</button>
+            </div>
+        </div>
+
+        <!-- Expense Summary -->
+        <div class="section-card">
+            <h3>Total Expenses: ₱<span id="totalExpenses">0</span></h3>
+            <h4>Expenses by Category</h4>
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Details</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Home</td>
+                        <td id="homeDetails"></td>
+                        <td id="homeTotal">₱0</td>
+                    </tr>
+                    <tr>
+                        <td>Transportation</td>
+                        <td id="transportationDetails"></td>
+                        <td id="transportationTotal">₱0</td>
+                    </tr>
+                    <tr>
+                        <td>Daily Living</td>
+                        <td id="dailylivingDetails"></td>
+                        <td id="dailylivingTotal">₱0</td>
+                    </tr>
+                    <tr>
+                        <td>Entertainment</td>
+                        <td id="entertainmentDetails"></td>
+                        <td id="entertainmentTotal">₱0</td>
+                    </tr>
+                    <tr>
+                        <td>Health</td>
+                        <td id="healthDetails"></td>
+                        <td id="healthTotal">₱0</td>
+                    </tr>
+                    <tr>
+                        <td>Vacation</td>
+                        <td id="vacationDetails"></td>
+                        <td id="vacationTotal">₱0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
