@@ -1,3 +1,4 @@
+/* RESET */
 * {
     margin: 0;
     padding: 0;
@@ -5,42 +6,80 @@
 }
 
 body {
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #f4f7fc;
+    font-family: "Segoe UI", sans-serif;
+    background: #f8faff;
     color: #333;
     line-height: 1.6;
 }
 
+/* Header */
 .app-header {
     background: #4cafef;
-    color: #fff;
+    color: white;
     text-align: center;
-    padding: 20px 0;
+    padding: 15px;
     font-size: 1.8rem;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Container */
 .container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 30px auto;
-    padding: 0 20px;
+    padding: 0 15px;
 }
 
+/* Summary Section */
+.summary-card {
+    display: flex;
+    justify-content: space-between;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.summary-item {
+    flex: 1;
+    text-align: center;
+}
+
+.summary-item p {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.summary-item h2 {
+    font-size: 1.8rem;
+    color: #4cafef;
+    margin-top: 8px;
+}
+
+/* Section Cards */
 .section-card {
     background: #fff;
     padding: 20px;
     margin-bottom: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .section-card h3 {
     margin-bottom: 15px;
     color: #333;
     font-size: 1.3rem;
-    border-left: 5px solid #4cafef;
+    border-left: 4px solid #4cafef;
     padding-left: 10px;
+}
+
+/* Form Grid */
+.form-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 input,
@@ -48,66 +87,43 @@ select,
 button {
     padding: 10px;
     font-size: 1rem;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #ccc;
-    margin: 5px;
+    flex: 1;
+    min-width: 150px;
 }
 
-button {
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
+/* Buttons */
 .btn-primary {
     background: #4cafef;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    flex: 0 0 auto;
 }
 
 .btn-primary:hover {
-    background: #399edb;
+    background: #3a97d4;
 }
 
 .btn-danger {
     background: #f44336;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 10px 15px;
 }
 
 .btn-danger:hover {
     background: #d32f2f;
 }
 
-.btn-small {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    border-radius: 5px;
+.center-button {
+    text-align: center;
+    margin-top: 15px;
 }
 
-.btn-edit {
-    background: #ffc107;
-    color: #fff;
-}
-
-.btn-edit:hover {
-    background: #e0a800;
-}
-
-.btn-delete {
-    background: #f44336;
-    color: #fff;
-}
-
-.btn-delete:hover {
-    background: #d32f2f;
-}
-
+/* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -126,18 +142,99 @@ th {
     font-weight: bold;
 }
 
-td {
-    color: #333;
+tr:hover {
+    background: #fafafa;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
     .summary-card {
         flex-direction: column;
-        gap: 15px;
+        text-align: center;
     }
 }
+/* Modal Overlay */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
 
-.center-button {
+/* Modal Box */
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     text-align: center;
+}
+
+/* Modal Buttons */
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
     margin-top: 15px;
 }
+
+.btn-secondary {
+    background: #ccc;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #bbb;
+}
+/* Salary Records Table */
+#salaryTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+#salaryTable th, #salaryTable td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+#salaryTable th {
+    background: #f4f6f8;
+    font-weight: 600;
+}
+
+#salaryTable td:nth-child(1) { width: 20%; }  /* Who */
+#salaryTable td:nth-child(2) { width: 25%; }  /* Date */
+#salaryTable td:nth-child(3) { width: 25%; }  /* Amount */
+#salaryTable td:nth-child(4) { width: 30%; }  /* Action */
+
+.btn-edit, .btn-delete {
+    padding: 6px 10px;
+    font-size: 13px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: #4cafef;
+    color: #fff;
+}
+
+.btn-delete {
+    background-color: #f44336;
+    color: #fff;
+}
+
+.btn-edit:hover { background-color: #2f93d6; }
+.btn-delete:hover { background-color: #d6332a; }
