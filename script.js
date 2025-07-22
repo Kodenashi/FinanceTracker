@@ -159,14 +159,6 @@ async function deleteSalary(id) {
     await deleteDoc(doc(db, "salaries", id));
 }
 
-function editSalary(id, currentAmount, currentDate) {
-    const newAmount = parseFloat(prompt("Enter new salary amount:", currentAmount));
-    const newDate = prompt("Enter new date (YYYY-MM-DD):", currentDate);
-    if (isNaN(newAmount) || newAmount <= 0 || !newDate) return;
-
-    updateDoc(doc(db, "salaries", id), { amount: newAmount, date: newDate });
-}
-
 function updateMonthlyTable() {
     const tbody = document.querySelector('#monthlyTable tbody');
     tbody.innerHTML = '';
@@ -258,5 +250,32 @@ async function deleteAllExpenses() {
     await batch.commit();
     alert("All expense records deleted.");
 }
+// --- Edit Salary Modal Logic ---
+let currentEditId = null;
+
+function editSalary(id, currentAmount, currentDate) {
+    currentEditId = id;
+    document.getElementById('editAmount').value = currentAmount;
+    document.getElementById('editDate').value = currentDate;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+document.getElementById('saveEditBtn').addEventListener('click', async () => {
+    const newAmount = parseFloat(document.getElementById('editAmount').value);
+    const newDate = document.getElementById('editDate').value;
+
+    if (isNaN(newAmount) || newAmount <= 0 || !newDate) {
+        alert("Please enter valid data.");
+        return;
+    }
+
+    await updateDoc(doc(db, "salaries", currentEditId), { amount: newAmount, date: newDate });
+    document.getElementById('editModal').style.display = 'none';
+});
+
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+    document.getElementById('editModal').style.display = 'none';
+});
+window.editSalary = editSalary;
 window.deleteAllSalaries = deleteAllSalaries;
 window.deleteAllExpenses = deleteAllExpenses;
