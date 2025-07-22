@@ -12,7 +12,6 @@
     <div class="container">
         <h2>Finance Tracker</h2>
 
-        <!-- Add Salary Section -->
         <div class="section-card">
             <h3>Add Salary</h3>
             <div class="add-salary">
@@ -22,11 +21,10 @@
                     <option value="Joan">Joan</option>
                 </select>
                 <input type="date" id="salaryDate">
-                <button onclick="addSalary()">Add Salary</button>
+                <button class="btn-primary" onclick="addSalary()">Add Salary</button>
             </div>
         </div>
 
-        <!-- Salary Records Table -->
         <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>Salary Records</h3>
@@ -40,12 +38,14 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                </tbody>
             </table>
-            <button class="btn-danger" onclick="deleteAllSalaries()">Delete All Salaries</button>
+            <div class="center-button">
+                <button class="btn-danger" onclick="deleteAllSalaries()">Delete All Salaries</button>
+            </div>
         </div>
 
-        <!-- Monthly Summary Table -->
         <div class="section-card">
             <h3>Monthly Combined Salary Summary</h3>
             <table id="monthlyTable">
@@ -58,12 +58,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Will be dynamically generated in future upgrade -->
                 </tbody>
             </table>
         </div>
 
-        <!-- Summary -->
         <div class="summary">
             <p><strong>Total Income:</strong> ₱<span id="totalIncome">0</span></p>
             <p><strong>Total Expenses:</strong> ₱<span id="totalExpenses">0</span></p>
@@ -72,7 +70,6 @@
 
         <hr>
 
-        <!-- Add Expense Section -->
         <div class="section-card">
             <h3>Add Expense</h3>
             <div class="add-expense">
@@ -99,11 +96,10 @@
                     <option value="30th">30th</option>
                 </select>
 
-                <button onclick="addExpense()">Add Expense</button>
+                <button class="btn-primary" onclick="addExpense()">Add Expense</button>
             </div>
         </div>
 
-        <!-- Expense Table -->
         <div class="section-card">
             <h3>Expenses by Category</h3>
             <table id="expenseTable">
@@ -147,11 +143,12 @@
                     </tr>
                 </tbody>
             </table>
-           <button class="btn-danger" onclick="deleteAllExpenses()">Delete All Expenses</button>
+            <div class="center-button">
+                <button class="btn-danger" onclick="deleteAllExpenses()">Delete All Expenses</button>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase & Script -->
     <script type="module" src="script.js"></script>
 </body>
 
