@@ -12,6 +12,7 @@
     <div class="container">
         <h2>Finance Tracker</h2>
 
+        <!-- Add Salary Section -->
         <div class="section-card">
             <h3>Add Salary</h3>
             <div class="add-salary">
@@ -25,10 +26,10 @@
             </div>
         </div>
 
+        <!-- Salary Records Table -->
         <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>Salary Records</h3>
-                <button class="btn-danger" onclick="clearAllSalaries()">Clear All</button>
             </div>
             <table id="salaryTable">
                 <thead>
@@ -43,6 +44,7 @@
             </table>
         </div>
 
+        <!-- Monthly Summary Table -->
         <div class="section-card">
             <h3>Monthly Combined Salary Summary</h3>
             <table id="monthlyTable">
@@ -54,17 +56,22 @@
                         <th>Remaining</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <!-- Will be dynamically generated in future upgrade -->
+                </tbody>
             </table>
         </div>
 
+        <!-- Summary -->
         <div class="summary">
             <p><strong>Total Income:</strong> ₱<span id="totalIncome">0</span></p>
+            <p><strong>Total Expenses:</strong> ₱<span id="totalExpenses">0</span></p>
             <p><strong>Remaining:</strong> ₱<span id="remaining">0</span></p>
         </div>
 
         <hr>
 
+        <!-- Add Expense Section -->
         <div class="section-card">
             <h3>Add Expense</h3>
             <div class="add-expense">
@@ -95,9 +102,9 @@
             </div>
         </div>
 
+        <!-- Expense Table -->
         <div class="section-card">
-            <h3>Total Expenses: ₱<span id="totalExpenses">0</span></h3>
-            <h4>Expenses by Category</h4>
+            <h3>Expenses by Category</h3>
             <table id="expenseTable">
                 <thead>
                     <tr>
@@ -141,19 +148,9 @@
             </table>
         </div>
     </div>
-    <script src="script.js"></script>
-    <div id="editSalaryModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Edit Salary</h3>
-            <input type="number" id="editSalaryAmount" placeholder="Salary amount">
-            <input type="date" id="editSalaryDate">
-            <div class="modal-actions">
-                <button onclick="saveEditedSalary()">Save</button>
-                <button class="btn-danger" onclick="closeEditModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
 
+    <!-- Firebase & Script -->
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>
