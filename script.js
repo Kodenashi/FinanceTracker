@@ -1,9 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc,
-    onSnapshot, query, orderBy, getDocs, writeBatch
+    getFirestore,
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    updateDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    getDocs,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 
 const firebaseConfig = {
     apiKey: "AIzaSyDxMntRJN5gNGB9OmCDbSSdZbWCWxAH1UY",
@@ -43,21 +51,16 @@ const expenseOptions = {
 
 const salaryQuery = query(salariesRef, orderBy("date", "desc"));
 onSnapshot(salaryQuery, (snapshot) => {
-    console.log("✅ Salaries snapshot triggered!");
     totalIncome = 0;
     const tbody = document.querySelector('#salaryTable tbody');
-    if (!tbody) {
-        console.error("❌ salaryTable tbody not found!");
-        return;
-    }
+    if (!tbody) return;
 
     tbody.innerHTML = '';
-    let monthlySummary = {};
 
-    snapshot.forEach(docSnap => {
-        const salary = { id: docSnap.id, ...docSnap.data() };
-        console.log("📌 Salary:", salary);
-        totalIncome += salary.amount;
+snapshot.forEach(docSnap => {
+    const salary = { id: docSnap.id, ...docSnap.data() };
+    totalIncome += Number(salary.amount) || 0;
+
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -70,14 +73,10 @@ onSnapshot(salaryQuery, (snapshot) => {
             </td>
         `;
         tbody.appendChild(row);
-
-        const monthKey = salary.date.slice(0, 7);
-        if (!monthlySummary[monthKey]) monthlySummary[monthKey] = { salary: 0, expenses: 0 };
-        monthlySummary[monthKey].salary += salary.amount;
     });
 
     document.getElementById('totalIncome').innerText = totalIncome.toLocaleString();
-    updateMonthlyTable(monthlySummary);
+    updateMonthlyTable();
     updateRemaining();
 });
 
@@ -94,35 +93,34 @@ onSnapshot(expensesRef, (snapshot) => {
         "Vacation": "vacation"
     };
 
-    for (let key in idMap) {
-        document.getElementById(idMap[key] + 'Details').innerHTML = '';
-        document.getElementById(idMap[key] + 'Total').innerText = '₱0';
-    }
+    const categoryExpenses = {
+        "Home": [],
+        "Transportation": [],
+        "Daily Living": [],
+        "Entertainment": [],
+        "Health": [],
+        "Vacation": []
+    };
 
-    let monthlySummary = {};
-
-    snapshot.forEach(docSnap => {
-        const exp = docSnap.data();
-        totalExpenses += exp.amount;
-        categoryTotals[exp.category] += exp.amount;
-
-        const detailsCell = document.getElementById(idMap[exp.category] + 'Details');
-        if (detailsCell.innerHTML.includes(`${exp.name} (₱${exp.amount.toLocaleString()}`) === false) {
-    detailsCell.innerHTML += `${exp.name} (₱${exp.amount.toLocaleString()} - Deducted on ${exp.payDate})<br>`;
-}
+snapshot.forEach(docSnap => {
+    const exp = docSnap.data();
+    totalExpenses += Number(exp.amount) || 0;
+    categoryTotals[exp.category] += Number(exp.amount) || 0;
 
 
-        const monthKey = new Date().toISOString().slice(0, 7);
-        if (!monthlySummary[monthKey]) monthlySummary[monthKey] = { salary: 0, expenses: 0 };
-        monthlySummary[monthKey].expenses += exp.amount;
+        if (categoryExpenses[exp.category]) {
+            categoryExpenses[exp.category].push(`${exp.name} (₱${exp.amount.toLocaleString()} - Deducted on ${exp.payDate})`);
+        }
     });
 
-    for (let cat in categoryTotals) {
+    for (let cat in categoryExpenses) {
+        const detailsCell = document.getElementById(idMap[cat] + 'Details');
+        detailsCell.innerHTML = categoryExpenses[cat].join('<br>');
         document.getElementById(idMap[cat] + 'Total').innerText = `₱${categoryTotals[cat].toLocaleString()}`;
     }
 
     document.getElementById('totalExpenses').innerText = totalExpenses.toLocaleString();
-    updateMonthlyTable(monthlySummary);
+    updateMonthlyTable();
     updateRemaining();
 });
 
@@ -169,23 +167,26 @@ function editSalary(id, currentAmount, currentDate) {
     updateDoc(doc(db, "salaries", id), { amount: newAmount, date: newDate });
 }
 
-function updateMonthlyTable(summary) {
+function updateMonthlyTable() {
     const tbody = document.querySelector('#monthlyTable tbody');
     tbody.innerHTML = '';
-    const months = Object.keys(summary).sort();
-    months.forEach(monthKey => {
-        const data = summary[monthKey];
-        const remaining = (data.salary || 0) - (data.expenses || 0);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatMonth(monthKey)}</td>
-            <td>₱${(data.salary || 0).toLocaleString()}</td>
-            <td>₱${(data.expenses || 0).toLocaleString()}</td>
-            <td>₱${remaining.toLocaleString()}</td>
-        `;
-        tbody.appendChild(row);
-    });
+
+    const income = Number(totalIncome) || 0;
+    const expenses = Number(totalExpenses) || 0;
+    const remaining = income - expenses;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>Combined Total</td>
+        <td>₱${income.toLocaleString()}</td>
+        <td>₱${expenses.toLocaleString()}</td>
+        <td style="color:${remaining >= 0 ? 'green' : 'red'}; font-weight:bold;">
+            ₱${remaining.toLocaleString()}
+        </td>
+    `;
+    tbody.appendChild(row);
 }
+
 
 function updateExpenseOptions() {
     const category = document.getElementById('expenseCategory').value;
@@ -203,18 +204,21 @@ function updateExpenseOptions() {
 
 function updateRemaining() {
     const remaining = totalIncome - totalExpenses;
-    document.getElementById('remaining').innerText = remaining.toLocaleString();
+    const remainingEl = document.getElementById('remaining');
+    remainingEl.innerText = remaining.toLocaleString();
+
+    if (remaining > 0) {
+        remainingEl.style.color = 'green';
+    } else if (remaining < 0) {
+        remainingEl.style.color = 'red';
+    } else {
+        remainingEl.style.color = 'black';
+    }
 }
 
 function formatDate(dateString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
-}
-
-function formatMonth(monthKey) {
-    const [year, month] = monthKey.split('-');
-    const date = new Date(year, month - 1);
-    return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
 window.addSalary = addSalary;
@@ -223,8 +227,6 @@ window.updateExpenseOptions = updateExpenseOptions;
 window.deleteSalary = deleteSalary;
 window.editSalary = editSalary;
 
-
-// ✅ Delete All Salaries
 async function deleteAllSalaries() {
     if (!confirm("Are you sure you want to delete ALL salary records? This cannot be undone.")) return;
 
@@ -241,8 +243,6 @@ async function deleteAllSalaries() {
     alert("All salary records deleted.");
 }
 
-
-// ✅ Delete All Expenses
 async function deleteAllExpenses() {
     if (!confirm("Are you sure you want to delete ALL expense records? This cannot be undone.")) return;
 
@@ -258,5 +258,5 @@ async function deleteAllExpenses() {
     await batch.commit();
     alert("All expense records deleted.");
 }
-
-
+window.deleteAllSalaries = deleteAllSalaries;
+window.deleteAllExpenses = deleteAllExpenses;
